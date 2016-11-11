@@ -9,6 +9,7 @@ import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import com.alex.kotlinrxtest.R
+import com.alex.kotlinrxtest.and
 import com.alex.kotlinrxtest.applicationComponent
 import com.alex.kotlinrxtest.notes.storage.NoteRevision
 import com.alex.kotlinrxtest.notes.storage.NoteRevisionModel
@@ -21,6 +22,7 @@ import org.threeten.bp.Instant
 import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -30,6 +32,7 @@ class NoteFragment : Fragment() {
     companion object {
         fun new(uuid: UUID): NoteFragment {
             val new = NoteFragment()
+
             new.arguments = Bundle()
                     .set("uuid" to uuid)
 
@@ -41,6 +44,15 @@ class NoteFragment : Fragment() {
 
     @Inject
     lateinit var notesDatabase: BriteDatabase
+
+    @Inject
+    lateinit var insertNewRevision: NoteRevisionModel.InsertNewRevision
+
+    @Inject
+    lateinit var insertNewSnapshot: NoteRevisionModel.InsertNewSnapshot
+
+    @Inject
+    lateinit var deleteOldRevisions: NoteRevisionModel.DeleteOldNoteRevisions
 
     var textChangedSubscription: Subscription? = null
 
@@ -66,8 +78,8 @@ class NoteFragment : Fragment() {
         super.onResume()
 
         notesDatabase.createQuery(NoteRevisionModel.TABLE_NAME,
-                NoteRevisionModel.SELECT_LATEST_NOTE_REVISION, uuid.toString())
-                .mapToOne({ cursor -> NoteRevision.map(cursor) })
+                NoteRevisionModel.SELECTLATESTNOTEREVISIONBYUUID, uuid.toString())
+                .mapToOne({ cursor -> NoteRevision.factory.selectLatestNoteRevisionByUuidMapper().map(cursor) })
                 .take(1)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ note ->
@@ -78,15 +90,13 @@ class NoteFragment : Fragment() {
                             view_name.afterTextChangeEvents(),
                             view_content.afterTextChangeEvents())
                             .throttleLast(2, TimeUnit.SECONDS)
-                            .subscribe({
-                                notesDatabase.insert(NoteRevisionModel.TABLE_NAME,
-                                        NoteRevision.marshal()
-                                                .uuid(uuid)
-                                                .timestamp(Instant.now())
-                                                .name(view_name.text.toString())
-                                                .content(view_content.text.toString())
-                                                .snapshot(false)
-                                                .asContentValues())
+                            .map { view_name.text.toString() and view_content.text.toString() }
+                            .observeOn(Schedulers.io())
+                            .subscribe({ values ->
+                                with(insertNewRevision) {
+                                    bind(uuid, Instant.now(), values.first, values.second)
+                                    notesDatabase.executeInsert(table, program)
+                                }
                             })
                 })
     }
@@ -97,27 +107,27 @@ class NoteFragment : Fragment() {
         textChangedSubscription?.unsubscribe()
         textChangedSubscription = null
 
-        with(notesDatabase.newTransaction()) {
-            try {
-                notesDatabase.insert(
-                        NoteRevisionModel.TABLE_NAME,
-                        NoteRevision.marshal()
-                                .uuid(uuid)
-                                .timestamp(Instant.now())
-                                .name(view_name.text.toString())
-                                .content(view_content.text.toString())
-                                .snapshot(false)
-                                .asContentValues())
+        Observable.just(view_name.text.toString() and view_content.text.toString())
+                .observeOn(Schedulers.io())
+                .subscribe({ values ->
+                    with(notesDatabase.newTransaction()) {
+                        try {
+                            with(insertNewRevision) {
+                                bind(uuid, Instant.now(), values.first, values.second)
+                                notesDatabase.executeInsert(table, program)
+                            }
 
-                notesDatabase.execute(
-                        NoteRevisionModel.DELETE_OLD_NOTE_REVISIONS,
-                        uuid.toString())
+                            with(deleteOldRevisions) {
+                                bind(uuid)
+                                notesDatabase.executeUpdateDelete(table, program)
+                            }
 
-                markSuccessful()
-            } finally {
-                end()
-            }
-        }
+                            markSuccessful()
+                        } finally {
+                            end()
+                        }
+                    }
+                })
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -128,15 +138,13 @@ class NoteFragment : Fragment() {
         menu.findItem(R.id.menu_snapshot)
                 .clicks()
                 .debounce(800, TimeUnit.MILLISECONDS)
-                .subscribe({ event ->
-                    notesDatabase.insert(NoteRevisionModel.TABLE_NAME,
-                            NoteRevision.marshal()
-                                    .uuid(uuid)
-                                    .timestamp(Instant.now())
-                                    .name(view_name.text.toString())
-                                    .content(view_content.text.toString())
-                                    .snapshot(true)
-                                    .asContentValues())
+                .map { view_name.text.toString() and view_content.text.toString() }
+                .observeOn(Schedulers.io())
+                .subscribe({ values ->
+                    with(insertNewSnapshot) {
+                        bind(uuid, Instant.now(), values.first, values.second)
+                        notesDatabase.executeInsert(table, program)
+                    }
                 })
     }
 }

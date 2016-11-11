@@ -1,23 +1,19 @@
 package com.alex.kotlinrxtest.notes.storage
 
-import android.database.Cursor
 import com.google.auto.value.AutoValue
 
 @AutoValue
 abstract class NoteRevision : NoteRevisionModel {
 
-    companion object : NoteRevisionModel.Creator<NoteRevision> by NoteRevisionModel.Creator(::AutoValue_NoteRevision) {
+    companion object {
 
-        private val factory = NoteRevisionModel.Factory<NoteRevision>(this, UUIDColumnAdapter(), InstantColumnAdapter())
+        private val creator: NoteRevisionModel.Creator<NoteRevision> = NoteRevisionModel.Creator<NoteRevision>(::AutoValue_NoteRevision)
 
-        private val mapper = NoteRevisionModel.Mapper<NoteRevision>(factory)
+        private val uuidColumnAdapter = UUIDColumnAdapter()
+        private val instantColumnAdapter = InstantColumnAdapter()
 
-        fun map(cursor: Cursor): NoteRevision = mapper.map(cursor)
-
-        fun marshal(): NoteRevisionModel.Marshal = factory.marshal()
+        val factory = NoteRevisionModel.Factory<NoteRevision>(creator, uuidColumnAdapter, instantColumnAdapter)
 
     }
-
-    fun marshal(): NoteRevisionModel.Marshal = factory.marshal(this)
 
 }

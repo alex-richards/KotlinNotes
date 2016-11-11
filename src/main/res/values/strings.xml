@@ -8,4 +8,6 @@
     <string name="label_new">New</string>
     <string name="label_snapshot">Snapshot</string>
 
+    <string name="note_default_title">New Note</string>
+
 </resources>

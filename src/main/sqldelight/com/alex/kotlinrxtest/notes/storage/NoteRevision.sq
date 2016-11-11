@@ -10,30 +10,56 @@ CREATE TABLE note_revisions (
     snapshot INTEGER AS Boolean DEFAULT 0 NOT NULL
 );
 
-create_latest_note_revisions_view:
-CREATE VIEW latest_note_revisions AS
-    SELECT *
-    FROM note_revisions
-    GROUP BY uuid
-    HAVING timestamp = MAX(timestamp);
+selectLatestNoteRevisions:
+SELECT
+    *
+FROM
+    note_revisions
+GROUP BY
+    uuid
+HAVING
+    timestamp = MAX(timestamp)
+ORDER BY
+    timestamp DESC;
 
-select_latest_note_revisions:
-SELECT *
-FROM latest_note_revisions
-ORDER BY timestamp DESC;
+selectLatestNoteRevisionByUuid:
+SELECT
+    *
+FROM
+    note_revisions
+WHERE
+    uuid = ?
+GROUP BY
+    uuid
+HAVING
+    timestamp = MAX(timestamp);
 
-select_latest_note_revision:
-SELECT *
-FROM latest_note_revisions
-WHERE uuid = ?;
+insertNewNote:
+INSERT INTO note_revisions (uuid, timestamp, name, content, snapshot)
+VALUES (?, ?, ?, '', 0);
 
-delete_old_note_revisions:
-DELETE FROM note_revisions
-WHERE _id IN (
-	SELECT _id
-	FROM note_revisions
-	WHERE uuid = ?
-	    AND snapshot = 0
-	ORDER BY timestamp DESC
-	LIMIT -1 OFFSET 10
-);
+insertNewRevision:
+INSERT INTO note_revisions (uuid, timestamp, name, content, snapshot)
+VALUES (?, ?, ?, ?, 0);
+
+insertNewSnapshot:
+INSERT INTO note_revisions (uuid, timestamp, name, content, snapshot)
+VALUES (?, ?, ?, ?, 1);
+
+deleteOldNoteRevisions:
+DELETE FROM
+    note_revisions
+WHERE
+    _id IN (
+        SELECT
+            _id
+        FROM
+            note_revisions
+        WHERE
+            uuid = ?
+            AND snapshot = 0
+        ORDER BY
+            timestamp DESC
+        LIMIT
+            -1 OFFSET 10
+    );

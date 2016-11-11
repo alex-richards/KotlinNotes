@@ -30,6 +30,9 @@ class NotesFragment : Fragment() {
     @Inject
     lateinit var notesDatabase: BriteDatabase
 
+    @Inject
+    lateinit var insertNewNote: NoteRevisionModel.InsertNewNote
+
     var notesSubscription: Subscription? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,8 +72,8 @@ class NotesFragment : Fragment() {
         super.onResume()
 
         notesSubscription = notesDatabase
-                .createQuery(NoteRevisionModel.TABLE_NAME, NoteRevisionModel.SELECT_LATEST_NOTE_REVISIONS)
-                .mapToList({ cursor -> NoteRevision.map(cursor) })
+                .createQuery(NoteRevisionModel.TABLE_NAME, NoteRevisionModel.SELECTLATESTNOTEREVISIONS)
+                .mapToList({ cursor -> NoteRevision.factory.selectLatestNoteRevisionsMapper().map(cursor) })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ list -> (view_list.adapter as NotesAdapter).notes = list })
     }
@@ -92,14 +95,10 @@ class NotesFragment : Fragment() {
                 .debounce(400, TimeUnit.MILLISECONDS)
                 .observeOn(Schedulers.io())
                 .subscribe({
-                    notesDatabase.insert(NoteRevisionModel.TABLE_NAME,
-                            NoteRevision.marshal()
-                                    .uuid(UUID.randomUUID())
-                                    .name("New Note")
-                                    .content("")
-                                    .timestamp(Instant.now())
-                                    .snapshot(true)
-                                    .asContentValues())
+                    with(insertNewNote) {
+                        bind(UUID.randomUUID(), Instant.now(), getString(R.string.note_default_title))
+                        notesDatabase.executeInsert(table, program)
+                    }
                 })
     }
 

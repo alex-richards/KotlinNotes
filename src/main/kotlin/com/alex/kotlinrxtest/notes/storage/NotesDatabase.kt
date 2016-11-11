@@ -8,7 +8,6 @@ class NotesDatabase(context: Context) : SQLiteOpenHelper(context, "NotesDB", nul
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(NoteRevisionModel.CREATE_TABLE)
-        db.execSQL(NoteRevisionModel.CREATE_LATEST_NOTE_REVISIONS_VIEW)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
