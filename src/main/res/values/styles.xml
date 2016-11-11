@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Application.Theme" parent="Theme.AppCompat.Light.NoActionBar">
+
+    </style>
+
+    <style name="Application"/>
+
+    <style name="Application.Style"/>
+
+    <style name="Application.Style.Toolbar">
+        <item name="android:background">@color/primary</item>
+        <item name="android:minHeight">?attr/actionBarSize</item>
+        <item name="android:elevation" tools:targetApi="lollipop">4dp</item>
+        <item name="theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
+    </style>
+
+    <style name="Application.Style.Container" />
+
+    <style name="Application.Style.Container.ListItem">
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+    </style>
+
+</resources>

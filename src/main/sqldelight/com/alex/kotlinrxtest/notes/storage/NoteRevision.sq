@@ -1,0 +1,39 @@
+import java.util.UUID;
+import org.threeten.bp.Instant;
+
+CREATE TABLE note_revisions (
+    _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT AS UUID NOT NULL ,
+    timestamp TEXT AS Instant NOT NULL,
+    name TEXT NOT NULL,
+    content TEXT NOT NULL,
+    snapshot INTEGER AS Boolean DEFAULT 0 NOT NULL
+);
+
+create_latest_note_revisions_view:
+CREATE VIEW latest_note_revisions AS
+    SELECT *
+    FROM note_revisions
+    GROUP BY uuid
+    HAVING timestamp = MAX(timestamp);
+
+select_latest_note_revisions:
+SELECT *
+FROM latest_note_revisions
+ORDER BY timestamp DESC;
+
+select_latest_note_revision:
+SELECT *
+FROM latest_note_revisions
+WHERE uuid = ?;
+
+delete_old_note_revisions:
+DELETE FROM note_revisions
+WHERE _id IN (
+	SELECT _id
+	FROM note_revisions
+	WHERE uuid = ?
+	    AND snapshot = 0
+	ORDER BY timestamp DESC
+	LIMIT -1 OFFSET 10
+);

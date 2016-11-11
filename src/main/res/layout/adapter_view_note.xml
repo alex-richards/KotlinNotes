@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Application.Style.Container.ListItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/view_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:lines="1"
+        tools:text="Title" />
+
+    <TextView
+        android:id="@+id/view_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:lines="2"
+        tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur pharetra, metus sit amet pulvinar laoreet, quam enim euismod enim, vel bibendum nibh libero ut sem. Sed eget rutrum felis, non luctus sem. Etiam sit amet consectetur orci. Integer nec tellus dolor. In ante ligula, tincidunt sed orci ut, laoreet tempus est. Fusce malesuada odio mauris, a pharetra eros posuere non. Nunc sit amet risus dolor. Integer quis hendrerit libero, eu condimentum neque. Cras at sapien sed libero rutrum commodo sit amet eu massa. Phasellus eleifend turpis dui, sed scelerisque justo pretium in. Etiam augue nisi, rhoncus a aliquam quis, commodo et sem. Nunc ac velit convallis, varius massa rhoncus, vehicula diam. Vivamus aliquam felis quam, id laoreet turpis volutpat nec. Proin consequat faucibus odio." />
+
+</LinearLayout>
