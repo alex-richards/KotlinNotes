@@ -11,9 +11,11 @@ import android.view.ViewGroup
 import com.alex.kotlinrxtest.R
 import com.alex.kotlinrxtest.and
 import com.alex.kotlinrxtest.applicationComponent
+import com.alex.kotlinrxtest.editThrottle
 import com.alex.kotlinrxtest.notes.storage.NoteRevision
 import com.alex.kotlinrxtest.notes.storage.NoteRevisionModel
 import com.alex.kotlinrxtest.set
+import com.alex.kotlinrxtest.uiThrottle
 import com.jakewharton.rxbinding.view.clicks
 import com.jakewharton.rxbinding.widget.afterTextChangeEvents
 import com.squareup.sqlbrite.BriteDatabase
@@ -24,7 +26,6 @@ import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class NoteFragment : Fragment() {
@@ -89,7 +90,7 @@ class NoteFragment : Fragment() {
                     textChangedSubscription = Observable.merge(
                             view_name.afterTextChangeEvents(),
                             view_content.afterTextChangeEvents())
-                            .throttleLast(2, TimeUnit.SECONDS)
+                            .editThrottle()
                             .map { view_name.text.toString() and view_content.text.toString() }
                             .observeOn(Schedulers.io())
                             .subscribe({ values ->
@@ -137,7 +138,7 @@ class NoteFragment : Fragment() {
 
         menu.findItem(R.id.menu_snapshot)
                 .clicks()
-                .debounce(800, TimeUnit.MILLISECONDS)
+                .uiThrottle()
                 .map { view_name.text.toString() and view_content.text.toString() }
                 .observeOn(Schedulers.io())
                 .subscribe({ values ->

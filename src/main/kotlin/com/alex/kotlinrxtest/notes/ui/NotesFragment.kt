@@ -13,6 +13,7 @@ import com.alex.kotlinrxtest.applicationComponent
 import com.alex.kotlinrxtest.getListener
 import com.alex.kotlinrxtest.notes.storage.NoteRevision
 import com.alex.kotlinrxtest.notes.storage.NoteRevisionModel
+import com.alex.kotlinrxtest.uiThrottle
 import com.jakewharton.rxbinding.support.v7.widget.dataChanges
 import com.jakewharton.rxbinding.view.clicks
 import com.squareup.sqlbrite.BriteDatabase
@@ -22,7 +23,6 @@ import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class NotesFragment : Fragment() {
@@ -92,7 +92,7 @@ class NotesFragment : Fragment() {
 
         menu.findItem(R.id.menu_new)
                 .clicks()
-                .debounce(400, TimeUnit.MILLISECONDS)
+                .uiThrottle()
                 .observeOn(Schedulers.io())
                 .subscribe({
                     with(insertNewNote) {
